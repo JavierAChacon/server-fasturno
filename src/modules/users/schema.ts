@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { Prisma } from '../../../generated/prisma/client'
 
 export const createUserSchema = z.object({
   name: z.string('Name is required').min(1, 'Name is required'),
@@ -12,4 +11,3 @@ export const createUserSchema = z.object({
 })
 
 export type CreateUserInput = z.infer<typeof createUserSchema>
-
