@@ -1,0 +1,27 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (¡MUY IMPORTANTE!)
+.env
+.env.*
+!.env.example
+
+# Compilación y build
+dist/
+dist-ssr/
+*.local
+
+# Prisma
+/src/generated/
+/prisma/migrations/
+
+# Tests y Logs
+coverage/
+*.log
+.vitest-result.json
+
+# Archivos temporales de desarrollo
+scratch/
+.DS_Store
+.idea/
+.vscode/

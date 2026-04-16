@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: fasturno_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      PGDATA: /var/lib/postgresql/18/docker
+    ports:
+      - '${DB_PORT}:5432'
+    volumes:
+      - db-data:/var/lib/postgresql
+
+volumes:
+  db-data:
