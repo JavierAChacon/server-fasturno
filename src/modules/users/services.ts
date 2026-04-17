@@ -1,6 +1,6 @@
 import auth from '../../lib/auth'
 import { findAllUsers, findUserById } from './repository'
-import type { CreateUserInput } from './schema'
+import type { CreateUserInput } from './schemas'
 
 export const registerUser = (data: CreateUserInput) => {
   return auth.api.signUpEmail({

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import auth from '../../lib/auth'
-import { createUserSchema } from './schema'
+import { createUserSchema } from './schemas'
 import { registerUser, getUserById, getAllUsers } from './services'
 import { findUserByEmail, findUserByCedula } from './repository'
 import { successResponse, errorResponse } from '../../utils/response'
