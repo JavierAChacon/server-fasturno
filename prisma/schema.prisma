@@ -8,17 +8,18 @@ datasource db {
 }
 
 model User {
-  id            String       @id
+  id            String        @id
   name          String
   email         String
-  emailVerified Boolean      @default(false)
+  emailVerified Boolean       @default(false) @map("email_verified")
   image         String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
   sessions      Session[]
   accounts      Account[]
   members       Member[]
   invitations   Invitation[]
+  appointments  Appointment[]
 
   cedula   String
   phone    String
@@ -31,15 +32,15 @@ model User {
 
 model Session {
   id                   String   @id
-  expiresAt            DateTime
+  expiresAt            DateTime @map("expires_at")
   token                String
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  ipAddress            String?
-  userAgent            String?
-  userId               String
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  ipAddress            String?  @map("ip_address")
+  userAgent            String?  @map("user_agent")
+  userId               String   @map("user_id")
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  activeOrganizationId String?
+  activeOrganizationId String?  @map("active_organization_id")
 
   @@unique([token])
   @@index([userId])
@@ -48,19 +49,19 @@ model Session {
 
 model Account {
   id                    String    @id
-  accountId             String
-  providerId            String
-  userId                String
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                String    @map("user_id")
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
   scope                 String?
   password              String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   @@index([userId])
   @@map("account")
@@ -70,23 +71,25 @@ model Verification {
   id         String   @id
   identifier String
   value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@index([identifier])
   @@map("verification")
 }
 
 model Organization {
-  id          String       @id
-  name        String
-  slug        String
-  logo        String?
-  createdAt   DateTime
-  metadata    String?
-  members     Member[]
-  invitations Invitation[]
+  id           String        @id
+  name         String
+  slug         String
+  logo         String?
+  createdAt    DateTime      @map("created_at")
+  metadata     String?
+  members      Member[]
+  invitations  Invitation[]
+  services     Service[]
+  appointments Appointment[]
 
   address String?
   slogan  String?
@@ -96,13 +99,14 @@ model Organization {
 }
 
 model Member {
-  id             String       @id
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role           String       @default("member")
-  createdAt      DateTime
+  id             String        @id
+  organizationId String        @map("organization_id")
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String        @map("user_id")
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String        @default("member")
+  createdAt      DateTime      @map("created_at")
+  appointments   Appointment[]
 
   @@index([organizationId])
   @@index([userId])
@@ -111,17 +115,49 @@ model Member {
 
 model Invitation {
   id             String       @id
-  organizationId String
+  organizationId String       @map("organization_id")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   email          String
   role           String?
   status         String       @default("pending")
-  expiresAt      DateTime
-  createdAt      DateTime     @default(now())
-  inviterId      String
+  expiresAt      DateTime     @map("expires_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  inviterId      String       @map("inviter_id")
   user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([email])
   @@map("invitation")
+}
+
+model Service {
+  id             String        @id @default(uuid())
+  name           String
+  description    String?
+  duration       Int
+  price          Float
+  organizationId String        @map("organization_id")
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  appointments   Appointment[]
+
+  @@map("service")
+}
+
+model Appointment {
+  id             String       @id @default(uuid())
+  startTime      DateTime     @map("start_time")
+  endTime        DateTime     @map("end_time")
+  status         String       @default("pending")
+  clientId       String       @map("client_id")
+  client         User         @relation(fields: [clientId], references: [id])
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  serviceId      String       @map("service_id")
+  service        Service      @relation(fields: [serviceId], references: [id])
+  memberId       String       @map("member_id")
+  member         Member       @relation(fields: [memberId], references: [id])
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@map("appointment")
 }

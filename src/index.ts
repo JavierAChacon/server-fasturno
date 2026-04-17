@@ -1,10 +1,12 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
-import { toNodeHandler } from 'better-auth/node'
 import auth from './lib/auth'
-import usersRouter from './modules/users/routes'
+import { toNodeHandler } from 'better-auth/node'
 import { errorHandler } from './utils/errorHandler'
+import organizationsRouter from './modules/organizations/routes'
+import servicesRouter from './modules/services/routes'
+import appointmentsRouter from './modules/appointments/routes'
 
 dotenv.config()
 
@@ -20,8 +22,9 @@ app.use(
 app.use(express.json())
 
 app.all('/api/auth/*splat', toNodeHandler(auth))
-
-app.use('/api/users', usersRouter)
+app.use('/api/organizations', organizationsRouter)
+app.use('/api/services', servicesRouter)
+app.use('/api/appointments', appointmentsRouter)
 
 app.use(errorHandler)
 
