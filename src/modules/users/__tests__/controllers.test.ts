@@ -40,7 +40,6 @@ describe('User Endpoints', () => {
     })
 
     it('should return 409 if email is already taken', async () => {
-      // Usamos el email de nuestro usuario del seed en el mock
       vi.mocked(repository.findUserByEmail).mockResolvedValue(mockOwner as any)
 
       const response = await request(app).post('/api/users/register').send({
