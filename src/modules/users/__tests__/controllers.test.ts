@@ -35,8 +35,8 @@ describe('User Endpoints', () => {
 
       expect(response.status).toBe(400)
       expect(response.body.success).toBe(false)
-      expect(response.body.message).toBe('Validation failed')
-      expect(response.body.errors.name).toBe('Name is required')
+      expect(response.body.message).toBe('Validation error')
+      expect(response.body.errors[0].message).toBe('Name is required')
     })
 
     it('should return 409 if email is already taken', async () => {
