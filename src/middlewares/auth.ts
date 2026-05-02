@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
 import auth from '../lib/auth'
-import { errorResponse } from '../utils/response'
+import response from '../utils/response'
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const session = await auth.api.getSession({
@@ -8,7 +8,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   })
 
   if (!session) {
-    return errorResponse(res, 'Unauthorized - No session found', 401)
+    return response.error(res, 'Unauthorized', 401)
   }
 
   req.user = session.user

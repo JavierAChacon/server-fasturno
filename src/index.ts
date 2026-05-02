@@ -3,7 +3,6 @@ import dotenv from 'dotenv'
 import cors from 'cors'
 import auth from './lib/auth'
 import { toNodeHandler } from 'better-auth/node'
-import { errorHandler } from './utils/errorHandler'
 import organizationsRouter from './modules/organizations/routes'
 import servicesRouter from './modules/services/routes'
 import appointmentsRouter from './modules/appointments/routes'
@@ -25,8 +24,6 @@ app.all('/api/auth/*splat', toNodeHandler(auth))
 app.use('/api/organizations', organizationsRouter)
 app.use('/api/services', servicesRouter)
 app.use('/api/appointments', appointmentsRouter)
-
-app.use(errorHandler)
 
 export { app }
 

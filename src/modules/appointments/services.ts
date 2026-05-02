@@ -1,5 +1,5 @@
 import prisma from '../../lib/prisma'
-import type { CreateAppointmentRequest } from './schemas'
+import type { Appointment } from './schemas'
 
 export const findOverlappingAppointment = async (memberId: string, startTime: Date, endTime: Date) => {
   return prisma.appointment.findFirst({
@@ -11,16 +11,9 @@ export const findOverlappingAppointment = async (memberId: string, startTime: Da
   })
 }
 
-export const createAppointment = async (clientId: string, data: CreateAppointmentRequest, endTime: Date) => {
+export const createAppointment = async (data: Appointment) => {
   return prisma.appointment.create({
-    data: {
-      startTime: data.startTime,
-      endTime,
-      clientId,
-      organizationId: data.organizationId,
-      serviceId: data.serviceId,
-      memberId: data.memberId,
-    },
+    data,
     include: {
       service: true,
       member: {

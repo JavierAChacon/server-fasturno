@@ -1,5 +1,4 @@
 import * as controllers from './controllers'
-import asyncHandler from '../../utils/asyncHandler'
 import { Router } from 'express'
 import { authMiddleware } from '../../middlewares/auth'
 
@@ -7,7 +6,7 @@ const router = Router()
 
 router.use(authMiddleware)
 
-router.get('/', asyncHandler(controllers.getOrganization))
-router.patch('/', asyncHandler(controllers.updateOrganization))
+router.get('/', controllers.getOrganization)
+router.patch('/', controllers.updateOrganization)
 
 export default router

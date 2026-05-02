@@ -1,45 +1,58 @@
+import { z } from 'zod'
 import * as schema from './schemas'
 import * as services from './services'
-import { addMinutes } from 'date-fns'
+import { addMinutes, parseISO } from 'date-fns'
 import { getServiceById } from '../services/services'
 import { getMemberById } from '../members/services'
 import { getRoleOrganization } from '../organizations/services'
-import { successResponse, errorResponse } from '../../utils/response'
+import response from '../../utils/response'
 import type { Request, Response } from 'express'
 
-export const createAppointment = async (req: Request<{}, {}, schema.CreateAppointmentRequest>, res: Response) => {
-  const data = schema.createAppointment.parse(req.body)
-  const loggedUserId = req.user!.id
-  const clientId = data.clientId
+export const createAppointment = async (req: Request<{}, {}, schema.CreateAppointment>, res: Response) => {
+  try {
+    const result = schema.createAppointment.safeParse(req.body)
+    if (!result.success) {
+      return response.error(res, 'Validation error', 400, z.flattenError(result.error).fieldErrors)
+    }
 
-  const isCreatorMember = await getRoleOrganization(loggedUserId, data.organizationId)
-  if (!isCreatorMember) {
-    return errorResponse(res, 'You do not have permission to create appointments in this organization', 403)
+    const { date, time, organizationId, serviceId, memberId, clientId } = result.data
+    const startTime = parseISO(`${date}T${time}`)
+    const loggedUserId = req.user!.id
+
+    const isCreatorMember = await getRoleOrganization(loggedUserId, organizationId)
+    if (!isCreatorMember) {
+      return response.error(res, 'You do not have permission to create appointments in this organization', 403)
+    }
+
+    const service = await getServiceById(serviceId)
+    if (!service || service.organizationId !== organizationId) {
+      return response.error(res, 'Service not found or does not belong to this organization', 400)
+    }
+
+    const staffMember = await getMemberById(memberId)
+    if (!staffMember || staffMember.organizationId !== organizationId) {
+      return response.error(res, 'The selected staff member does not belong to this organization', 400)
+    }
+
+    const endTime = addMinutes(startTime, result.data.duration ?? service.duration)
+    const overlap = await services.findOverlappingAppointment(memberId, startTime, endTime)
+    if (overlap) {
+      return response.error(res, 'The staff member is already booked at this time', 409)
+    }
+
+    const appointment = await services.createAppointment({ clientId, organizationId, serviceId, memberId, startTime, endTime })
+    return response.success(res, appointment, 201)
+  } catch (error) {
+    return response.unhandledError(res, error)
   }
-
-  const service = await getServiceById(data.serviceId)
-  if (!service || service.organizationId !== data.organizationId) {
-    return errorResponse(res, 'Service not found or does not belong to this organization', 400)
-  }
-
-  const staffMember = await getMemberById(data.memberId)
-  if (!staffMember || staffMember.organizationId !== data.organizationId) {
-    return errorResponse(res, 'The selected staff member does not belong to this organization', 400)
-  }
-
-  const endTime = addMinutes(data.startTime, service.duration)
-  const overlap = await services.findOverlappingAppointment(data.memberId, data.startTime, endTime)
-
-  if (overlap) {
-    return errorResponse(res, 'The staff member is already booked at this time', 409)
-  }
-
-  const appointment = await services.createAppointment(clientId, data, endTime)
-  return successResponse(res, appointment, 'Appointment created successfully', 201)
 }
 
 export const getAppoinmentById = async (req: Request<{ appointmentId: string }>, res: Response) => {
-  const { appointmentId } = req.params
-  const appointment = await services.getAppoinmentById(appointmentId)
-  return successResponse(res, appointment)
+  try {
+    const { appointmentId } = req.params
+    const appointment = await services.getAppoinmentById(appointmentId)
+    return response.success(res, appointment)
+  } catch (error) {
+    return response.unhandledError(res, error)
+  }
 }
